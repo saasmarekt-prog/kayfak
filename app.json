@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "كيفك",
+    "slug": "kayfak",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.kayfak.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#101827"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.kayfak.app",
+      "supportsTablet": true
+    }
+  }
+}

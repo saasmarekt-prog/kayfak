@@ -1,0 +1,1 @@
+Supabase migrations will be added after the project schema and access policies are reviewed. Do not apply the earlier draft schema blindly: production needs transactional room creation/joining, private-room invitations, safe story voting, and tested RLS policies.

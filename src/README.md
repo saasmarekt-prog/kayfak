@@ -1,0 +1,1 @@
+Reserved for feature modules as the application grows. Keep data access and business logic out of UI components where practical.
