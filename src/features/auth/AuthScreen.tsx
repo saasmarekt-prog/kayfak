@@ -4,7 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { ar } from "../../localization/ar";
 import { colors } from "../../theme/tokens";
 import { isSupabaseConfigured, supabase } from "../../lib/supabase";
-import { getMyProfile, Profile } from "../profile/profileRepository";
+import { getMyProfile, Profile, updateMyProfile } from "../profile/profileRepository";
 
 type AuthMode = "signIn" | "signUp";
 
@@ -21,6 +21,9 @@ export function AuthScreen({ session, onSessionChange }: AuthScreenProps) {
   const [message, setMessage] = useState("");
   const [isBusy, setIsBusy] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileName, setProfileName] = useState("");
+  const [profileBio, setProfileBio] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -35,7 +38,11 @@ export function AuthScreen({ session, onSessionChange }: AuthScreenProps) {
       setProfile(null);
       return;
     }
-    getMyProfile(session.user.id).then(({ data }) => setProfile(data));
+    getMyProfile(session.user.id).then(({ data }) => {
+      setProfile(data);
+      setProfileName(data?.display_name ?? "");
+      setProfileBio(data?.bio ?? "");
+    });
   }, [session]);
 
   const submit = async () => {
@@ -78,6 +85,19 @@ export function AuthScreen({ session, onSessionChange }: AuthScreenProps) {
     onSessionChange(null);
   };
 
+  const saveProfile = async () => {
+    if (!session || profileName.trim().length < 1) return;
+    setIsSavingProfile(true);
+    const result = await updateMyProfile(session.user.id, { username: profile?.username ?? null, display_name: profileName.trim(), bio: profileBio.trim() || null, avatar_url: profile?.avatar_url ?? null, visibility: profile?.visibility ?? "public" });
+    setIsSavingProfile(false);
+    if (result.error) {
+      setMessage("تعذر حفظ الملف الشخصي.");
+      return;
+    }
+    setProfile(result.data);
+    setMessage("تم حفظ الملف الشخصي.");
+  };
+
   if (!isSupabaseConfigured) {
     return <SetupNotice />;
   }
@@ -88,6 +108,9 @@ export function AuthScreen({ session, onSessionChange }: AuthScreenProps) {
         <Text style={styles.kicker}>الحساب</Text>
         <Text style={styles.title}>أهلًا {profile?.display_name ?? "بك"}</Text>
         <Text style={styles.body}>{session.user.email}</Text>
+        <TextInput value={profileName} onChangeText={setProfileName} placeholder="الاسم الظاهر" placeholderTextColor={colors.muted} style={styles.input} textAlign="right" maxLength={80} />
+        <TextInput value={profileBio} onChangeText={setProfileBio} placeholder="نبذة قصيرة" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} textAlign="right" multiline maxLength={500} />
+        <Pressable disabled={isSavingProfile} accessibilityRole="button" onPress={saveProfile} style={[styles.primaryButton, isSavingProfile && styles.disabled]}><Text style={styles.primaryButtonText}>{isSavingProfile ? "جارٍ الحفظ..." : "حفظ الملف الشخصي"}</Text></Pressable>
         <Pressable accessibilityRole="button" onPress={signOut} style={styles.secondaryButton}>
           <Text style={styles.secondaryButtonText}>تسجيل الخروج</Text>
         </Pressable>
@@ -130,7 +153,7 @@ const styles = StyleSheet.create({
   kicker: { color: colors.gold, fontSize: 13, fontWeight: "800", textAlign: "right" },
   title: { color: colors.text, fontSize: 24, fontWeight: "900", textAlign: "right" },
   body: { color: colors.muted, fontSize: 13, lineHeight: 22, textAlign: "right" },
-  input: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderRadius: 12, borderWidth: 1, color: colors.text, minHeight: 48, paddingHorizontal: 14 },
+  input: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderRadius: 12, borderWidth: 1, color: colors.text, minHeight: 48, paddingHorizontal: 14 }, multiline: { minHeight: 80, paddingTop: 12 },
   primaryButton: { alignItems: "center", backgroundColor: colors.gold, borderRadius: 13, paddingVertical: 13 },
   primaryButtonText: { color: "#101827", fontSize: 14, fontWeight: "900" },
   secondaryButton: { alignItems: "center", borderColor: colors.border, borderRadius: 13, borderWidth: 1, paddingVertical: 13 },
