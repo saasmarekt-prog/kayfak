@@ -19,6 +19,9 @@
     "ios": {
       "bundleIdentifier": "com.kayfak.app",
       "supportsTablet": true
-    }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }
