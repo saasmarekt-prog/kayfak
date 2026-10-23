@@ -6,6 +6,9 @@
   - API secrets must not be exposed to frontend clients; short-lived signed tokens are returned by the backend.
   - LiveKit webhooks can be verified with `WebhookReceiver` using the raw request body and Authorization header.
 
+- LiveKit RoomServiceClient: https://docs.livekit.io/reference/server-sdk-js/classes/RoomServiceClient.html
+  - `removeParticipant(room, identity)` disconnects a connected participant, but database authorization and ban persistence remain application responsibilities.
+
 - Supabase Edge Function secrets: https://supabase.com/docs/guides/functions/secrets
   - Local secrets are read from `supabase/functions/.env` and production secrets can be set with the Dashboard or `supabase secrets set`.
   - Secret values must not be committed. Supabase injects project URL and key variables into functions.

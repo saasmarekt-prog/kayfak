@@ -23,12 +23,15 @@ supabase functions deploy livekit-webhook
 supabase functions deploy send-gift
 supabase functions deploy billing-webhook
 supabase functions deploy submit-game-answer
+supabase functions deploy moderate-room-member
 supabase test db
 ```
 
 التطبيق يستدعي `livekit-token` من شاشة الغرفة بعد نجاح العضوية. إصدار الرمز أصبح مربوطًا، لكن طبقة الصوت الأصلية `livekit-client` أو `@livekit/react-native` تحتاج إضافتها إلى build Expo development client؛ إصدار الرمز وحده لا ينشئ اتصالًا صوتيًا.
 
 محرك القصص يستدعي `start_story` ثم `choose_story_choice`؛ لا يحدّث التطبيق التقدم مباشرة. محرك الألعاب يعرض الجولة عبر `get_active_game_round`، ولا يقرأ `expected_answer`، ثم يرسل الإجابة إلى `submit-game-answer` حتى يصححها الخادم ويمنح النقاط idempotently.
+
+إجراءات الطرد والحظر تمر عبر `moderate-room-member`. تُسجل العملية في قاعدة البيانات أولًا، ويمنع الحظر إعادة الانضمام عبر `join_room`. إذا كانت أسرار LiveKit مضبوطة، تستخدم الوظيفة `RoomServiceClient.removeParticipant` لإخراج المشارك المتصل من غرفة LiveKit؛ وفي حال تعذر مزود LiveKit تبقى عملية قاعدة البيانات محفوظة ويظهر تحذير للمشرف.
 
 لتشغيل LiveKit على الهاتف استخدم development build، وليس Expo Go:
 

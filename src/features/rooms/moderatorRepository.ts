@@ -50,3 +50,10 @@ export async function setRoomMemberRole(roomId: string, userId: string, role: Ex
   const result = await supabase.rpc("set_room_member_role", { p_room_id: roomId, p_user_id: userId, p_role: role });
   return { error: result.error ?? null };
 }
+
+export async function moderateRoomMember(roomId: string, userId: string, action: "kick" | "ban", reason: string): Promise<{ error: Error | null; warning?: string }> {
+  if (!supabase) return { error: new Error("Supabase is not configured") };
+  const result = await supabase.functions.invoke("moderate-room-member", { body: { room_id: roomId, target_user_id: userId, action, reason } });
+  if (result.error) return { error: result.error };
+  return { error: null, warning: typeof result.data?.warning === "string" ? result.data.warning : undefined };
+}
