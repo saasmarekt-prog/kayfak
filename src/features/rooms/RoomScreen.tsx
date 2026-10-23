@@ -5,6 +5,7 @@ import type { RoomPreview } from "../discovery/previewRooms";
 import { endRoom, joinRoom, leaveRoom, requestLiveKitToken } from "../discovery/roomCommands";
 import { LiveKitAudioRoom } from "./LiveKitAudioRoom";
 import { GameRoundPanel } from "../games/GameRoundPanel";
+import { ModeratorPanel } from "./ModeratorPanel";
 
 type RoomScreenProps = { room: RoomPreview; isAuthenticated: boolean; onBack: () => void; onChanged: (message: string) => void };
 
@@ -41,6 +42,7 @@ export function RoomScreen({ room, isAuthenticated, onBack, onChanged }: RoomScr
       <Text style={styles.title}>{room.title}</Text>
       <Text style={styles.body}>{room.description}</Text>
       <Text style={styles.meta}>بواسطة {room.host} · {room.listeners} مستمعًا</Text>
+      <ModeratorPanel roomId={room.id} isAuthenticated={isAuthenticated} />
       <View style={styles.notice}><Text style={styles.noticeText}>الصوت الحقيقي يحتاج مزودًا موثوقًا ورمز اتصال قصير العمر من backend. هذه الشاشة لا تنشئ اتصالًا وهميًا.</Text></View>
       {!joined ? <Pressable disabled={busy} onPress={() => run(async () => { const result = await joinRoom(room.id); if (!result.error) setJoined(true); return result; }, "تم الانضمام إلى الغرفة.")} style={[styles.primary, busy && styles.disabled]}><Text style={styles.primaryText}>{busy ? "جارٍ الانضمام..." : "انضمام إلى الغرفة"}</Text></Pressable> : <><Pressable disabled={busy || audioReady} onPress={prepareAudio} style={[styles.primary, (busy || audioReady) && styles.disabled]}><Text style={styles.primaryText}>{audioReady ? "الاتصال الصوتي جاهز" : busy ? "جارٍ تجهيز الصوت..." : "بدء الاتصال الصوتي"}</Text></Pressable>{audioCredentials && <LiveKitAudioRoom token={audioCredentials.token} serverUrl={audioCredentials.url} />}<GameRoundPanel roomId={room.id} /><View style={styles.row}><Pressable disabled={busy} onPress={() => run(async () => { const result = await leaveRoom(room.id); if (!result.error) { setJoined(false); setAudioReady(false); setAudioCredentials(null); } return result; }, "تمت مغادرة الغرفة.")} style={styles.secondary}><Text style={styles.secondaryText}>مغادرة</Text></Pressable><Pressable disabled={busy} onPress={() => run(() => endRoom(room.id), "تم إنهاء الغرفة.")} style={styles.danger}><Text style={styles.dangerText}>إنهاء</Text></Pressable></View></>}
       {error.length > 0 && <Text style={styles.error}>{error}</Text>}

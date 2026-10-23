@@ -12,6 +12,8 @@
 
 ثُبّتت حزم `@livekit/react-native` و`@livekit/react-native-webrtc` و`livekit-client` وExpo plugins بإصدارات متوافقة مع Expo 52. أضيفت تهيئة `registerGlobals()` ومكون اتصال يدير AudioSession والميكروفون وحالة الاتصال والمشاركين.
 
+أضيفت لوحة مشرف مرئية داخل شاشة الغرفة. تتحقق من الصلاحية عبر RPC، تعرض الطلبات المعلقة، وتوفر قبولًا أو رفضًا مع تحديث تلقائي ورسائل نجاح وفشل. القرار النهائي يمر عبر `review_speaker_request` ولا يعتمد على الواجهة.
+
 ## ما هو جزئي أو يحتاج خدمة خارجية
 
 الاتصال الصوتي الأصلي أصبح موجودًا في كود التطبيق، لكن لم يُبنَ APK أو IPA فعلي داخل هذه الجلسة ولم يُختبر مع LiveKit server حقيقي. Expo Go غير مدعوم؛ يلزم Expo development build. كذلك لم تُنشر Edge Functions ولم تُطبق migrations على مشروع Supabase فعلي.

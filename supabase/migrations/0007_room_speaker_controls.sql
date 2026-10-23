@@ -83,11 +83,47 @@ begin
 end;
 $$;
 
+create or replace function public.get_room_moderation_state(p_room_id uuid)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'is_owner', r.owner_id = (select auth.uid()),
+    'is_moderator', public.is_room_moderator(p_room_id),
+    'can_manage', r.owner_id = (select auth.uid()) or public.is_room_moderator(p_room_id)
+  )
+  from public.rooms r
+  where r.id = p_room_id;
+$$;
+
+create or replace function public.list_pending_speaker_requests(p_room_id uuid)
+returns table(id uuid, user_id uuid, display_name text, avatar_url text, created_at timestamptz)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not exists (select 1 from public.rooms r where r.id = p_room_id and (r.owner_id = (select auth.uid()) or public.is_room_moderator(p_room_id))) then
+    raise exception using errcode = '42501', message = 'Moderator permission required';
+  end if;
+  return query
+    select sr.id, sr.user_id, p.display_name, p.avatar_url, sr.created_at
+    from public.room_speaker_requests sr
+    join public.profiles p on p.id = sr.user_id
+    where sr.room_id = p_room_id and sr.status = 'pending'
+    order by sr.created_at asc;
+end;
+$$;
+
 alter table public.room_speaker_requests enable row level security;
 create policy speaker_requests_select_own_or_moderator on public.room_speaker_requests for select to authenticated using (user_id = (select auth.uid()) or exists (select 1 from public.rooms r where r.id = room_id and (r.owner_id = (select auth.uid()) or public.is_room_moderator(room_id))));
 revoke insert, update, delete on public.room_speaker_requests from anon, authenticated;
 grant execute on function public.request_to_speak(uuid) to authenticated;
 grant execute on function public.review_speaker_request(uuid, boolean) to authenticated;
 grant execute on function public.set_room_member_role(uuid, uuid, public.room_member_role) to authenticated;
+grant execute on function public.get_room_moderation_state(uuid) to authenticated;
+grant execute on function public.list_pending_speaker_requests(uuid) to authenticated;
 
 commit;
