@@ -1,6 +1,6 @@
 # Supabase database foundation
 
-الملفات `migrations/0001_phase2_core_schema.sql` و`migrations/0002_profile_discovery.sql` و`migrations/0003_room_lifecycle_audio.sql` هي migrations الأساس الحالية. صُممت لتكون صغيرة وقابلة للمراجعة، وليست مخطط المنتج النهائي.
+الملفات `migrations/0001_phase2_core_schema.sql` حتى `migrations/0005_wallet_gifts_subscriptions.sql` هي migrations الأساس الحالية. صُممت لتكون صغيرة وقابلة للمراجعة، وليست مخطط المنتج النهائي.
 
 ## النطاق
 
@@ -18,6 +18,8 @@
 تضيف migration الثانية دالة `discover_public_rooms` لاكتشاف الغرف العامة الحية مع بحث اختياري وصفحات وعدّاد مستمعين محسوب من العضويات النشطة. الدالة متاحة للزائر للغرف العامة فقط، ولا تعطي وصولًا إلى الجداول الخاصة.
 
 تضيف migration الثالثة دورة حياة الغرفة، الدعوات الخاصة، المشرفين، وجلسات الصوت metadata. تسجيل جلسة الصوت محصور بـ`service_role` حتى لا يستطيع العميل إعلان غرفة مباشرة دون نجاح مزود الصوت. التفاصيل التشغيلية موجودة في `docs/room-audio-lifecycle.md`.
+
+تضيف migration الرابعة مواضيع المجتمعات وردود الفعل ومسارات إنشاء المجتمع والعضوية والنشر. تضيف migration الخامسة محفظة ودفتر قيود immutable والهدايا والمشتريات والاشتراكات، مع حصر التسويات المالية بالخادم الموثوق. توجد Edge Functions في `functions/livekit-token` و`functions/livekit-webhook` و`functions/send-gift` و`functions/billing-webhook`.
 
 ## قرارات أمان مهمة
 
@@ -50,4 +52,4 @@ supabase test db
 - تقييد تغيير أدوار المجتمع والغرفة عبر دوال خلفية مخصصة؛ لا يكفي `UPDATE` المباشر في المرحلة التالية.
 - إضافة rate limits وقيود مكافحة spam عبر Edge Functions أو طبقة API موثوقة.
 - مراجعة سياسات حذف الحساب والاحتفاظ بالبلاغات وسجل التدقيق.
-- عدم إضافة عمليات الرصيد أو المدفوعات قبل تصميم دفتر قيود immutable واختبارات التزامن.
+- اختبار Edge Functions ومزودي LiveKit وStripe في مشروع staging قبل الإنتاج، مع ضبط الأسرار عبر `supabase secrets set` وعدم وضعها في GitHub.

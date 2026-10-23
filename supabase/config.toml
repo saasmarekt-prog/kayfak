@@ -1,0 +1,11 @@
+[functions.livekit-token]
+verify_jwt = true
+
+[functions.livekit-webhook]
+verify_jwt = false
+
+[functions.send-gift]
+verify_jwt = true
+
+[functions.billing-webhook]
+verify_jwt = false

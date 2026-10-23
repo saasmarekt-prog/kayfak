@@ -5,6 +5,7 @@ import { ar } from "../../localization/ar";
 import { colors } from "../../theme/tokens";
 import { isSupabaseConfigured, supabase } from "../../lib/supabase";
 import { getMyProfile, Profile, updateMyProfile } from "../profile/profileRepository";
+import { WalletPanel } from "../wallet/WalletPanel";
 
 type AuthMode = "signIn" | "signUp";
 
@@ -111,6 +112,7 @@ export function AuthScreen({ session, onSessionChange }: AuthScreenProps) {
         <TextInput value={profileName} onChangeText={setProfileName} placeholder="الاسم الظاهر" placeholderTextColor={colors.muted} style={styles.input} textAlign="right" maxLength={80} />
         <TextInput value={profileBio} onChangeText={setProfileBio} placeholder="نبذة قصيرة" placeholderTextColor={colors.muted} style={[styles.input, styles.multiline]} textAlign="right" multiline maxLength={500} />
         <Pressable disabled={isSavingProfile} accessibilityRole="button" onPress={saveProfile} style={[styles.primaryButton, isSavingProfile && styles.disabled]}><Text style={styles.primaryButtonText}>{isSavingProfile ? "جارٍ الحفظ..." : "حفظ الملف الشخصي"}</Text></Pressable>
+        <WalletPanel userId={session.user.id} />
         <Pressable accessibilityRole="button" onPress={signOut} style={styles.secondaryButton}>
           <Text style={styles.secondaryButtonText}>تسجيل الخروج</Text>
         </Pressable>

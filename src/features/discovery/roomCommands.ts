@@ -48,6 +48,13 @@ export async function endRoom(roomId: string): Promise<{ error: Error | null }> 
   return { error: result.error ?? null };
 }
 
+export async function requestLiveKitToken(roomId: string): Promise<{ data: { token: string; url: string } | null; error: Error | null }> {
+  if (!supabase) return { data: null, error: new Error("Supabase is not configured") };
+  const result = await supabase.functions.invoke("livekit-token", { body: { room_id: roomId } });
+  if (result.error) return { data: null, error: result.error };
+  return { data: result.data as { token: string; url: string }, error: null };
+}
+
 export function createdRoomToPreview(room: CreatedRoom): RoomPreview {
   return {
     id: room.id,

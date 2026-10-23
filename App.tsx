@@ -19,6 +19,7 @@ import { supabase } from "./src/lib/supabase";
 import { discoverRooms } from "./src/features/discovery/roomRepository";
 import { RoomCreateScreen } from "./src/features/rooms/RoomCreateScreen";
 import { RoomScreen } from "./src/features/rooms/RoomScreen";
+import { CommunityPanel } from "./src/features/communities/CommunityPanel";
 
 I18nManager.allowRTL(true);
 
@@ -166,6 +167,7 @@ export default function App() {
             {!isLoadingRooms && roomsError.length === 0 && rooms.map((room) => <RoomCard key={room.id} room={room} onPress={() => room.isPreview ? showNotice(ar.notice.preview(room.title)) : setSelectedRoom(room)} />)}
             {!isLoadingRooms && roomsError.length === 0 && rooms.length === 0 && <Text style={styles.emptyText}>{ar.emptyRooms}</Text>}
           </View>
+          {supabase && <CommunityPanel />}
 
           {notice.length > 0 && (
             <View accessibilityLiveRegion="polite" style={styles.notice}>
