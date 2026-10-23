@@ -77,6 +77,7 @@ begin
   select * into v_room from public.rooms where id = p_room_id;
   if not found or (v_room.owner_id <> v_user and not public.is_room_moderator(p_room_id)) then raise exception using errcode = '42501', message = 'Moderator permission required'; end if;
   if p_user_id = v_room.owner_id and p_role <> 'host' then raise exception using errcode = '22023', message = 'Room owner cannot be demoted'; end if;
+  if p_role = 'host' and v_room.owner_id <> v_user then raise exception using errcode = '42501', message = 'Only the room owner can assign host'; end if;
   update public.room_members set role = p_role where room_id = p_room_id and user_id = p_user_id and left_at is null returning * into v_member;
   if not found then raise exception using errcode = '22023', message = 'Active member not found'; end if;
   return v_member;
