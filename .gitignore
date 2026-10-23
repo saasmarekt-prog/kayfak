@@ -7,3 +7,5 @@ dist/
 supabase/functions/.env
 npm-debug.log*
 .DS_Store
+playwright-report/
+test-results/

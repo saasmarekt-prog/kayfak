@@ -23,6 +23,7 @@ import { RoomScreen } from "./src/features/rooms/RoomScreen";
 import { CommunityPanel } from "./src/features/communities/CommunityPanel";
 import { StoryPanel } from "./src/features/stories/StoryPanel";
 import { registerGlobals } from "@livekit/react-native";
+import { NotificationCenter } from "./src/features/notifications/NotificationCenter";
 
 I18nManager.allowRTL(true);
 if (Platform.OS !== "web") registerGlobals();
@@ -119,14 +120,7 @@ export default function App() {
               <Text style={styles.eyebrow}>{ar.eyebrow}</Text>
               <Text style={styles.logo}>{ar.brand}<Text style={styles.logoDot}>.</Text></Text>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="الإشعارات"
-              style={({ pressed }) => [styles.notificationButton, pressed && styles.pressed]}
-              onPress={() => showNotice(ar.notice.notifications)}
-            >
-              <Text style={styles.notificationIcon}>♧</Text>
-            </Pressable>
+            <NotificationCenter />
           </View>
 
           {showCreateRoom && <RoomCreateScreen onCancel={() => setShowCreateRoom(false)} onCreated={(message) => { setShowCreateRoom(false); showNotice(message); }} />}
