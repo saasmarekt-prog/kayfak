@@ -38,6 +38,8 @@
 
 ## التطبيق المحلي
 
+يحتوي `config.toml` على إعدادات Supabase المحلية لـAPI وPostgres وAuth وRealtime وEdge Functions. يحتوي `seed.sql` على قوالب ألعاب وقصة تجريبية مشروطة بوجود profile محلي، ولا ينشئ مستخدمين أو أسرارًا تلقائيًا. دليل التشغيل الكامل موجود في `docs/supabase-local-setup.md`.
+
 بعد ربط مشروع Supabase:
 
 ```bash
