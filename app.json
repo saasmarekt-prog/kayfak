@@ -6,6 +6,10 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "extra": {
+      "defaultLocale": "ar",
+      "layoutDirection": "rtl"
+    },
     "android": {
       "package": "com.kayfak.app",
       "adaptiveIcon": {

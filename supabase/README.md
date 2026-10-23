@@ -1,1 +1,49 @@
-Supabase migrations will be added after the project schema and access policies are reviewed. Do not apply the earlier draft schema blindly: production needs transactional room creation/joining, private-room invitations, safe story voting, and tested RLS policies.
+# Supabase database foundation
+
+الملف `migrations/0001_phase2_core_schema.sql` هو migration المرحلة الثانية. صُمم ليكون أساسًا صغيرًا وقابلًا للمراجعة، وليس مخطط المنتج النهائي.
+
+## النطاق
+
+يشمل المخطط الحالي:
+
+- `profiles`: ملف المستخدم المرتبط بـ`auth.users`.
+- `follows` و`blocks`: علاقات المستخدم الأساسية.
+- `communities` و`community_members`: المجتمعات والعضوية والأدوار.
+- `rooms` و`room_members`: الغرف ودورة العضوية.
+- `reports`: البلاغات التي ينشئها المستخدم.
+- `notifications`: إشعارات المستخدم الخاصة.
+
+لم تُضف المحفظة، الهدايا، الاشتراكات، القصص، المنشورات أو لوحة الإدارة بعد؛ لكل منها متطلبات صلاحيات ومحاسبة واختبارات مستقلة.
+
+## قرارات أمان مهمة
+
+1. كل جدول مفعّل عليه RLS، ولا توجد صلاحيات `anon` على جداول التطبيق.
+2. القراءة العامة مقيدة بالغرف العامة والملفات الشخصية العامة؛ الغرف الخاصة والمجتمعات الخاصة تحتاج علاقة عضوية.
+3. لا توجد سياسة `INSERT` مباشرة على `room_members`. الانضمام يتم عبر `join_room(uuid)` التي تتحقق من المصادقة والحالة والسعة داخل معاملة وقفل صف الغرفة.
+4. `leave_room(uuid)` يضع `left_at` بدل حذف السجل، للحفاظ على سجل العضوية.
+5. إنشاء مستخدم جديد ينشئ ملفًا تلقائيًا عبر trigger على `auth.users`.
+6. إنشاء مجتمع أو غرفة يضيف المالك كعضو تلقائيًا عبر trigger بصلاحيات محدودة.
+7. مفاتيح `SECURITY DEFINER` تضبط `search_path` إلى `public`، ولا تعرض أسرارًا للعميل.
+
+## التطبيق المحلي
+
+بعد ربط مشروع Supabase:
+
+```bash
+supabase link --project-ref YOUR_PROJECT_REF
+supabase db push
+supabase test db
+```
+
+لا تطبق SQL يدويًا من لوحة Supabase. راجع migration أولًا، ثم استخدم Supabase CLI وسجل نتيجة التطبيق في بيئة اختبار منفصلة.
+
+لم تُشغّل هذه الجلسة migration على مشروع Supabase حقيقي لعدم توفر `project-ref` أو جلسة Supabase CLI. لذلك لا يوجد ادعاء بأن الجداول أو السياسات منشورة حاليًا.
+
+## قبل الإنتاج
+
+- إضافة اختبارات RLS بمستخدمين ومجتمعات وغرف fixture حقيقية، لا الاكتفاء بفحص وجود السياسات.
+- إضافة نظام دعوات للغرف الخاصة قبل السماح بمشاركة روابطها.
+- تقييد تغيير أدوار المجتمع والغرفة عبر دوال خلفية مخصصة؛ لا يكفي `UPDATE` المباشر في المرحلة التالية.
+- إضافة rate limits وقيود مكافحة spam عبر Edge Functions أو طبقة API موثوقة.
+- مراجعة سياسات حذف الحساب والاحتفاظ بالبلاغات وسجل التدقيق.
+- عدم إضافة عمليات الرصيد أو المدفوعات قبل تصميم دفتر قيود immutable واختبارات التزامن.
