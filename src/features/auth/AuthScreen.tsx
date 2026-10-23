@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { ar } from "../../localization/ar";
 import { colors } from "../../theme/tokens";
 import { isSupabaseConfigured, supabase } from "../../lib/supabase";
+import { getMyProfile, Profile } from "../profile/profileRepository";
 
 type AuthMode = "signIn" | "signUp";
 
@@ -19,6 +20,7 @@ export function AuthScreen({ session, onSessionChange }: AuthScreenProps) {
   const [displayName, setDisplayName] = useState("");
   const [message, setMessage] = useState("");
   const [isBusy, setIsBusy] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -27,6 +29,14 @@ export function AuthScreen({ session, onSessionChange }: AuthScreenProps) {
     });
     return () => data.subscription.unsubscribe();
   }, [onSessionChange]);
+
+  useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      return;
+    }
+    getMyProfile(session.user.id).then(({ data }) => setProfile(data));
+  }, [session]);
 
   const submit = async () => {
     if (!supabase) {
@@ -76,7 +86,7 @@ export function AuthScreen({ session, onSessionChange }: AuthScreenProps) {
     return (
       <View style={styles.card}>
         <Text style={styles.kicker}>الحساب</Text>
-        <Text style={styles.title}>أهلًا بك</Text>
+        <Text style={styles.title}>أهلًا {profile?.display_name ?? "بك"}</Text>
         <Text style={styles.body}>{session.user.email}</Text>
         <Pressable accessibilityRole="button" onPress={signOut} style={styles.secondaryButton}>
           <Text style={styles.secondaryButtonText}>تسجيل الخروج</Text>

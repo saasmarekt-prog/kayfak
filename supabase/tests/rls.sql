@@ -3,7 +3,7 @@
 -- covered by the same fixtures when the auth/profile seed strategy is finalized.
 
 begin;
-select plan(10);
+select plan(12);
 
 -- The migration must have RLS enabled on all phase-two tables.
 select ok((select relrowsecurity from pg_class where oid = 'public.profiles'::regclass), 'profiles has RLS enabled');
@@ -28,6 +28,8 @@ select ok(not exists (
   select 1 from pg_policies
   where schemaname = 'public' and tablename = 'room_members' and cmd = 'DELETE'
 ), 'room_members has no direct DELETE policy');
+select ok(to_regprocedure('public.discover_public_rooms(text,text,integer,timestamptz)') is not null, 'room discovery RPC exists');
+select ok(has_function_privilege('anon', 'public.discover_public_rooms(text,text,integer,timestamptz)', 'EXECUTE'), 'anon can execute public room discovery only');
 
 select * from finish();
 rollback;
