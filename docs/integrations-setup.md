@@ -22,7 +22,19 @@ supabase functions deploy livekit-token
 supabase functions deploy livekit-webhook
 supabase functions deploy send-gift
 supabase functions deploy billing-webhook
+supabase functions deploy submit-game-answer
 supabase test db
 ```
 
 التطبيق يستدعي `livekit-token` من شاشة الغرفة بعد نجاح العضوية. إصدار الرمز أصبح مربوطًا، لكن طبقة الصوت الأصلية `livekit-client` أو `@livekit/react-native` تحتاج إضافتها إلى build Expo development client؛ إصدار الرمز وحده لا ينشئ اتصالًا صوتيًا.
+
+محرك القصص يستدعي `start_story` ثم `choose_story_choice`؛ لا يحدّث التطبيق التقدم مباشرة. محرك الألعاب يعرض الجولة عبر `get_active_game_round`، ولا يقرأ `expected_answer`، ثم يرسل الإجابة إلى `submit-game-answer` حتى يصححها الخادم ويمنح النقاط idempotently.
+
+لتشغيل LiveKit على الهاتف استخدم development build، وليس Expo Go:
+
+```bash
+npx expo prebuild
+npx expo run:android
+# أو
+npx expo run:ios
+```

@@ -9,3 +9,6 @@ verify_jwt = true
 
 [functions.billing-webhook]
 verify_jwt = false
+
+[functions.submit-game-answer]
+verify_jwt = true

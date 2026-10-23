@@ -19,3 +19,12 @@
 - Supabase Database Webhooks: https://supabase.com/docs/guides/database/webhooks
   - Database webhooks fire after INSERT, UPDATE, or DELETE and can invoke Edge Functions.
   - Webhook secrets should be kept outside migration files, for example in Vault or function secrets.
+
+- LiveKit Expo quickstart: https://docs.livekit.io/transport/sdk-platforms/expo/
+  - Expo integration uses `@livekit/react-native`, `@livekit/react-native-expo-plugin`, `@livekit/react-native-webrtc`, `@config-plugins/react-native-webrtc`, and `livekit-client`.
+  - Native LiveKit code is not compatible with Expo Go; an Expo development build is required.
+  - The app must call `registerGlobals()` and start/stop `AudioSession` around a room connection.
+
+- LiveKit Expo plugin repository: https://github.com/livekit/client-sdk-react-native-expo-plugin
+  - The plugin is added to `app.json` with the WebRTC config plugin.
+  - The selected versions in this project are pinned to the Expo 52 peer range instead of forcing a newer plugin that requires Expo 56.

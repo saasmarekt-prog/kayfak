@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "../../theme/tokens";
 import type { RoomPreview } from "../discovery/previewRooms";
 import { endRoom, joinRoom, leaveRoom, requestLiveKitToken } from "../discovery/roomCommands";
+import { LiveKitAudioRoom } from "./LiveKitAudioRoom";
+import { GameRoundPanel } from "../games/GameRoundPanel";
 
 type RoomScreenProps = { room: RoomPreview; isAuthenticated: boolean; onBack: () => void; onChanged: (message: string) => void };
 
@@ -10,6 +12,7 @@ export function RoomScreen({ room, isAuthenticated, onBack, onChanged }: RoomScr
   const [busy, setBusy] = useState(false);
   const [joined, setJoined] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
+  const [audioCredentials, setAudioCredentials] = useState<{ token: string; url: string } | null>(null);
   const [error, setError] = useState("");
 
   const run = async (action: () => Promise<{ error: Error | null }>, success: string) => {
@@ -25,8 +28,9 @@ export function RoomScreen({ room, isAuthenticated, onBack, onChanged }: RoomScr
     const result = await requestLiveKitToken(room.id);
     setBusy(false);
     if (result.error) { setError("تعذر إصدار رمز الصوت. تأكد من تشغيل Edge Function وإعداد LiveKit."); return; }
-    setAudioReady(true);
-    onChanged("تم إصدار رمز الصوت القصير. يلزم تثبيت LiveKit React Native لإكمال الاتصال الصوتي.");
+    if (result.data) setAudioCredentials(result.data);
+    setAudioReady(Boolean(result.data));
+    onChanged("تم تجهيز الاتصال الصوتي الحقيقي.");
   };
 
   return (
@@ -38,7 +42,7 @@ export function RoomScreen({ room, isAuthenticated, onBack, onChanged }: RoomScr
       <Text style={styles.body}>{room.description}</Text>
       <Text style={styles.meta}>بواسطة {room.host} · {room.listeners} مستمعًا</Text>
       <View style={styles.notice}><Text style={styles.noticeText}>الصوت الحقيقي يحتاج مزودًا موثوقًا ورمز اتصال قصير العمر من backend. هذه الشاشة لا تنشئ اتصالًا وهميًا.</Text></View>
-      {!joined ? <Pressable disabled={busy} onPress={() => run(async () => { const result = await joinRoom(room.id); if (!result.error) setJoined(true); return result; }, "تم الانضمام إلى الغرفة.")} style={[styles.primary, busy && styles.disabled]}><Text style={styles.primaryText}>{busy ? "جارٍ الانضمام..." : "انضمام إلى الغرفة"}</Text></Pressable> : <><Pressable disabled={busy || audioReady} onPress={prepareAudio} style={[styles.primary, (busy || audioReady) && styles.disabled]}><Text style={styles.primaryText}>{audioReady ? "رمز الصوت جاهز" : busy ? "جارٍ تجهيز الصوت..." : "تجهيز الاتصال الصوتي"}</Text></Pressable><View style={styles.row}><Pressable disabled={busy} onPress={() => run(async () => { const result = await leaveRoom(room.id); if (!result.error) { setJoined(false); setAudioReady(false); } return result; }, "تمت مغادرة الغرفة.")} style={styles.secondary}><Text style={styles.secondaryText}>مغادرة</Text></Pressable><Pressable disabled={busy} onPress={() => run(() => endRoom(room.id), "تم إنهاء الغرفة.")} style={styles.danger}><Text style={styles.dangerText}>إنهاء</Text></Pressable></View></>}
+      {!joined ? <Pressable disabled={busy} onPress={() => run(async () => { const result = await joinRoom(room.id); if (!result.error) setJoined(true); return result; }, "تم الانضمام إلى الغرفة.")} style={[styles.primary, busy && styles.disabled]}><Text style={styles.primaryText}>{busy ? "جارٍ الانضمام..." : "انضمام إلى الغرفة"}</Text></Pressable> : <><Pressable disabled={busy || audioReady} onPress={prepareAudio} style={[styles.primary, (busy || audioReady) && styles.disabled]}><Text style={styles.primaryText}>{audioReady ? "الاتصال الصوتي جاهز" : busy ? "جارٍ تجهيز الصوت..." : "بدء الاتصال الصوتي"}</Text></Pressable>{audioCredentials && <LiveKitAudioRoom token={audioCredentials.token} serverUrl={audioCredentials.url} />}<GameRoundPanel roomId={room.id} /><View style={styles.row}><Pressable disabled={busy} onPress={() => run(async () => { const result = await leaveRoom(room.id); if (!result.error) { setJoined(false); setAudioReady(false); setAudioCredentials(null); } return result; }, "تمت مغادرة الغرفة.")} style={styles.secondary}><Text style={styles.secondaryText}>مغادرة</Text></Pressable><Pressable disabled={busy} onPress={() => run(() => endRoom(room.id), "تم إنهاء الغرفة.")} style={styles.danger}><Text style={styles.dangerText}>إنهاء</Text></Pressable></View></>}
       {error.length > 0 && <Text style={styles.error}>{error}</Text>}
     </View>
   );

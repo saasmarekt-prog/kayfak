@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   I18nManager,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -20,8 +21,11 @@ import { discoverRooms } from "./src/features/discovery/roomRepository";
 import { RoomCreateScreen } from "./src/features/rooms/RoomCreateScreen";
 import { RoomScreen } from "./src/features/rooms/RoomScreen";
 import { CommunityPanel } from "./src/features/communities/CommunityPanel";
+import { StoryPanel } from "./src/features/stories/StoryPanel";
+import { registerGlobals } from "@livekit/react-native";
 
 I18nManager.allowRTL(true);
+if (Platform.OS !== "web") registerGlobals();
 
 function Pill({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
   return (
@@ -129,11 +133,7 @@ export default function App() {
           {!showCreateRoom && selectedRoom && <RoomScreen room={selectedRoom} isAuthenticated={Boolean(session)} onBack={() => setSelectedRoom(null)} onChanged={showNotice} />}
           {!showCreateRoom && !selectedRoom && activeTab === ar.tabs.account && <AuthScreen session={session} onSessionChange={setSession} />}
           {!showCreateRoom && !selectedRoom && activeTab === ar.tabs.stories && (
-            <View style={styles.comingSoon}>
-              <Text style={styles.kicker}>قصصي</Text>
-              <Text style={styles.comingSoonTitle}>القصص التفاعلية قيد البناء</Text>
-              <Text style={styles.comingSoonBody}>{ar.notice.stories}</Text>
-            </View>
+            <StoryPanel />
           )}
           {!showCreateRoom && !selectedRoom && activeTab === ar.tabs.discover && <>
           <View style={styles.hero}>
