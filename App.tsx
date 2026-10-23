@@ -17,6 +17,8 @@ import type { Session } from "@supabase/supabase-js";
 import { AuthScreen } from "./src/features/auth/AuthScreen";
 import { supabase } from "./src/lib/supabase";
 import { discoverRooms } from "./src/features/discovery/roomRepository";
+import { RoomCreateScreen } from "./src/features/rooms/RoomCreateScreen";
+import { RoomScreen } from "./src/features/rooms/RoomScreen";
 
 I18nManager.allowRTL(true);
 
@@ -67,6 +69,8 @@ export default function App() {
   const [rooms, setRooms] = useState<RoomPreview[]>(supabase ? [] : previewRooms);
   const [isLoadingRooms, setIsLoadingRooms] = useState(Boolean(supabase));
   const [roomsError, setRoomsError] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState<RoomPreview | null>(null);
+  const [showCreateRoom, setShowCreateRoom] = useState(false);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -120,15 +124,17 @@ export default function App() {
             </Pressable>
           </View>
 
-          {activeTab === ar.tabs.account && <AuthScreen session={session} onSessionChange={setSession} />}
-          {activeTab === ar.tabs.stories && (
+          {showCreateRoom && <RoomCreateScreen onCancel={() => setShowCreateRoom(false)} onCreated={(message) => { setShowCreateRoom(false); showNotice(message); }} />}
+          {!showCreateRoom && selectedRoom && <RoomScreen room={selectedRoom} isAuthenticated={Boolean(session)} onBack={() => setSelectedRoom(null)} onChanged={showNotice} />}
+          {!showCreateRoom && !selectedRoom && activeTab === ar.tabs.account && <AuthScreen session={session} onSessionChange={setSession} />}
+          {!showCreateRoom && !selectedRoom && activeTab === ar.tabs.stories && (
             <View style={styles.comingSoon}>
               <Text style={styles.kicker}>قصصي</Text>
               <Text style={styles.comingSoonTitle}>القصص التفاعلية قيد البناء</Text>
               <Text style={styles.comingSoonBody}>{ar.notice.stories}</Text>
             </View>
           )}
-          {activeTab === ar.tabs.discover && <>
+          {!showCreateRoom && !selectedRoom && activeTab === ar.tabs.discover && <>
           <View style={styles.hero}>
             <View style={styles.heroOrbOne} /><View style={styles.heroOrbTwo} />
             <Text style={styles.heroKicker}>{ar.heroKicker}</Text>
@@ -140,6 +146,9 @@ export default function App() {
               onPress={() => { setCategory("الكل"); setActiveTab("اكتشف"); showNotice(ar.notice.chooseRoom); }}
             >
               <Text style={styles.primaryButtonText}>{ar.discoverRooms}</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={() => setShowCreateRoom(true)} style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>إنشاء غرفة</Text>
             </Pressable>
           </View>
 
@@ -154,7 +163,7 @@ export default function App() {
           <View style={styles.roomsList}>
             {isLoadingRooms && <Text style={styles.emptyText}>جارٍ تحميل الغرف...</Text>}
             {!isLoadingRooms && roomsError.length > 0 && <Text style={styles.errorText}>{roomsError}</Text>}
-            {!isLoadingRooms && roomsError.length === 0 && rooms.map((room) => <RoomCard key={room.id} room={room} onPress={() => showNotice(ar.notice.preview(room.title))} />)}
+            {!isLoadingRooms && roomsError.length === 0 && rooms.map((room) => <RoomCard key={room.id} room={room} onPress={() => room.isPreview ? showNotice(ar.notice.preview(room.title)) : setSelectedRoom(room)} />)}
             {!isLoadingRooms && roomsError.length === 0 && rooms.length === 0 && <Text style={styles.emptyText}>{ar.emptyRooms}</Text>}
           </View>
 
@@ -174,7 +183,7 @@ export default function App() {
               key={tab}
               accessibilityRole="button"
               accessibilityState={{ selected: activeTab === tab }}
-              onPress={() => { setActiveTab(tab); if (tab === ar.tabs.discover) setNotice(""); else showNotice(tab === ar.tabs.stories ? ar.notice.stories : ar.notice.account); }}
+              onPress={() => { setActiveTab(tab); setSelectedRoom(null); setShowCreateRoom(false); if (tab === ar.tabs.discover) setNotice(""); else showNotice(tab === ar.tabs.stories ? ar.notice.stories : ar.notice.account); }}
               style={({ pressed }) => [styles.tabItem, pressed && styles.pressed]}
             >
               <Text style={[styles.tabIcon, activeTab === tab && styles.tabIconActive]}>{tab === ar.tabs.discover ? "⌕" : tab === ar.tabs.stories ? "◇" : "○"}</Text>
@@ -196,7 +205,7 @@ const styles = StyleSheet.create({
   hero: { overflow: "hidden", borderRadius: 26, padding: 22, backgroundColor: colors.hero, borderWidth: 1, borderColor: colors.heroBorder, marginBottom: 27 },
   heroOrbOne: { position: "absolute", width: 170, height: 170, borderRadius: 85, backgroundColor: "#253C59", top: -80, left: -45, opacity: 0.8 }, heroOrbTwo: { position: "absolute", width: 100, height: 100, borderRadius: 50, borderWidth: 1, borderColor: "#52617A", top: -26, left: 30, opacity: 0.45 },
   heroKicker: { color: colors.gold, fontSize: 13, fontWeight: "700", textAlign: "right" }, heroTitle: { color: colors.text, fontSize: 27, lineHeight: 38, fontWeight: "900", textAlign: "right", marginTop: 12 }, heroBody: { color: "#C3CDDC", fontSize: 14, lineHeight: 23, textAlign: "right", marginTop: 10, marginBottom: 18 },
-  primaryButton: { alignSelf: "flex-end", borderRadius: 14, backgroundColor: colors.gold, paddingVertical: 12, paddingHorizontal: 16 }, primaryButtonText: { color: "#101827", fontSize: 14, fontWeight: "900" },
+  primaryButton: { alignSelf: "flex-end", borderRadius: 14, backgroundColor: colors.gold, paddingVertical: 12, paddingHorizontal: 16 }, primaryButtonText: { color: "#101827", fontSize: 14, fontWeight: "900" }, secondaryButton: { alignSelf: "flex-end", borderColor: colors.border, borderRadius: 14, borderWidth: 1, marginTop: 10, paddingHorizontal: 16, paddingVertical: 11 }, secondaryButtonText: { color: colors.text, fontSize: 13, fontWeight: "800" },
   sectionHeading: { flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }, sectionTitle: { color: colors.text, fontSize: 19, fontWeight: "800", textAlign: "right" }, sectionHint: { color: colors.muted, fontSize: 11 }, filters: { flexDirection: "row-reverse", gap: 8, paddingBottom: 18 },
   pill: { paddingHorizontal: 15, paddingVertical: 9, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }, pillSelected: { backgroundColor: colors.gold, borderColor: colors.gold }, pillText: { color: colors.muted, fontSize: 13, fontWeight: "600" }, pillTextSelected: { color: "#101827", fontWeight: "900" }, pressed: { opacity: 0.78 },
   roomsList: { gap: 12 }, roomCard: { flexDirection: "row-reverse", overflow: "hidden", borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, minHeight: 142 }, roomAccent: { width: 4 }, roomContent: { flex: 1, padding: 14 }, roomTopRow: { flexDirection: "row-reverse", alignItems: "center", gap: 7 }, categoryTag: { borderRadius: 8, backgroundColor: colors.surfaceRaised, paddingHorizontal: 9, paddingVertical: 4 }, categoryText: { color: colors.muted, fontSize: 11 }, liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.green }, liveText: { color: colors.green, fontSize: 11 }, roomTitle: { color: colors.text, fontSize: 17, fontWeight: "800", textAlign: "right", marginTop: 11 }, roomDescription: { color: colors.muted, fontSize: 12, textAlign: "right", marginTop: 6, lineHeight: 19 }, roomBottomRow: { flexDirection: "row-reverse", justifyContent: "space-between", alignItems: "center", marginTop: 12 }, hostText: { color: "#C0CBDA", fontSize: 11, flexShrink: 1 }, listenersText: { color: colors.muted, fontSize: 11 }, emptyText: { color: colors.muted, textAlign: "center", padding: 25 },
